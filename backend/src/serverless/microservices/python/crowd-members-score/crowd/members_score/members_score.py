@@ -63,16 +63,16 @@ class MembersScore:
                     , \'1 day\'::interval) dd\
                     ) AllDays\
                 cross join ( select "memberId", count(*) as e, sum(score) as s, date("timestamp") as "timestamp"  \
-                from public.activities where "activities"."tenantId" = CAST(\'{id}\' as uuid) \
+                from public.activities where "activities"."tenantId" = CAST(?{id} as uuid) \
                 group by "memberId", date("timestamp") ) U\
                 group by "memberId", Alldays.MyJoinDate order by Alldays.MyJoinDate ASC\
                 ) FullDates \
                 left join (select "memberId" as cm_id, count(*) as e, sum(score) as s, date("timestamp") as "timestamp"  \
-                from public.activities where "activities"."tenantId" = CAST(\'{id}\' as uuid) \
+                from public.activities where "activities"."tenantId" = CAST(? as uuid) \
                 group by "memberId", date("timestamp")) T on T."cm_id"=FullDates."memberId" and T."timestamp" = FullDates.MyJoinDate\
                 group by FullDates."memberId", FullDates.MyJoinDate order by FullDates.MyJoinDate asc\
-                ) Daily group by "memberId", extract(month from MyJoinDate), extract(year from MyJoinDate)'
-            ).fetchall()
+                ) Daily group by "memberId", extract(month from MyJoinDate), extract(year from MyJoinDate)', 
+            (id, id, )).fetchall()
 
     def _calculate_months(self, date):
         """
@@ -217,8 +217,6 @@ class MembersScore:
             return {}
 
         scores_to_update = self.normalise(self.scores)
-
-        changed = 0
 
         members_controller = MembersController(self.tenant_id, repository=self.repository)
 

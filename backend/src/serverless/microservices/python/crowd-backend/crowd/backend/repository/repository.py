@@ -143,11 +143,11 @@ class Repository(object):
     def find_all_usernames(self):
         with self.engine.connect() as con:
             return con.execute(
-                f"""select m."id", mw."username", m."displayName", m."emails"
+                """select m."id", mw."username", m."displayName", m."emails"
                     from "members" m
                             inner join "memberActivityAggregatesMVs" mw on m.id = mw.id
-                    where m."tenantId" = '{self.tenant_id}'"""
-            ).fetchall()
+                    where m."tenantId" = ?""", 
+            (self.tenant_id, )).fetchall()
 
     def find_all(
         self, table, ignore_tenant: "bool" = False, query: "dict" = None, order: "dict" = None
